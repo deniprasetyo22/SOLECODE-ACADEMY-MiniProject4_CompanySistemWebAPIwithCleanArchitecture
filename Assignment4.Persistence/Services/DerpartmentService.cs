@@ -18,21 +18,8 @@ namespace MiniProject4.Persistence.Services
         {
             _context = context;
         }
-        private async Task<int> GenerateNextDeptNo()
-        {
-            var lastDeptNo = await _context.Departments
-                .OrderByDescending(d => d.Deptno)
-                .Select(d => d.Deptno)
-                .FirstOrDefaultAsync();
-            return lastDeptNo + 1;
-        }
         public async Task<bool> AddDepartment(Department department)
         {
-            if (department.Deptno == 0)
-            {
-                department.Deptno = await GenerateNextDeptNo();
-            }
-
             // Validasi apakah Mgrempno ada di database
             var managerExists = await _context.Employees.AnyAsync(e => e.Empno == department.Mgrempno);
             if (!managerExists)

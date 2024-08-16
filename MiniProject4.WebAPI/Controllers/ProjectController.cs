@@ -55,29 +55,12 @@ namespace MiniProject4.WebAPI.Controllers
             {
                 return BadRequest("Project data cannot be null.");
             }
-
             // Validate required fields
             if (string.IsNullOrWhiteSpace(project.Projname) || project.Deptno == 0)
             {
                 return BadRequest("Project Name and Department Number are required.");
             }
-
-            // Validate department exists
-            var departmentExists = await _departmentService.GetDepartmentById(project.Deptno);
-            if (departmentExists == null)
-            {
-                return BadRequest("Department Number does not exist.");
             }
-
-            // Check for existing project with the same name or department number
-            var success = await _projectService.AddProject(project);
-            if (!success)
-            {
-                return BadRequest("Project Name or Department Number already exists or Department Number is already used by another project.");
-            }
-
-            return Ok("Project Data Successfully Added.");
-        }
 
         /// <summary>
         /// Retrieves a paginated list of all projects in the system.

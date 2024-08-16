@@ -139,19 +139,6 @@ namespace MiniProject4.Persistence.Services
                 })
                 .ToListAsync();
         }
-        public async Task<IEnumerable<Project>> GetProjectsManagedByDepartments(params string[] departmentNames)
-        {
-            var departmentNumbers = await _context.Departments
-                .Where(d => departmentNames.Contains(d.Deptname))
-                .Select(d => d.Deptno)
-                .ToListAsync();
-
-            var projects = await _context.Projects
-                .Where(p => departmentNumbers.Contains(p.Deptno))
-                .ToListAsync();
-
-            return projects;
-        }
         public async Task<IEnumerable<Project>> GetProjectsWithNoEmployees()
         {
             var projectsWithNoEmployees = await _context.Projects

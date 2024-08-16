@@ -16,7 +16,6 @@ namespace MiniProject4.Application.Interfaces
         Task<bool> UpdateProject(int projNo, Project editProj);
         Task<bool> DeleteProject(int projNo);
         Task<IEnumerable<Project>> GetProjectsManagedByDept();
-        Task<IEnumerable<Project>> GetProjectsManagedByDepartments(params string[] departmentNames);
         Task<IEnumerable<Project>> GetProjectsWithNoEmployees();
     }
 }
