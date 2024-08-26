@@ -6,11 +6,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MiniProject4.Application.Interfaces
+namespace MiniProject4.Application.Interfaces.IServices
 {
-    public interface IEmployee
+    public interface IEmployeeService
     {
-        Task<(bool isSuccess, string message)> AddEmployee(Employee employee, int maxEmployees);
+        Task<(bool isSuccess, string message)> AddEmployee(Employee employee);
         Task<IEnumerable<Employee>> GetAllEmployees(int pageNumber, int pageSize);
         Task<Employee> GetEmployeeById(int empNo);
         Task<bool> UpdateEmployee(int empNo, Employee editEmp);
@@ -21,6 +21,13 @@ namespace MiniProject4.Application.Interfaces
         Task<IEnumerable<Employee>> GetFemaleManagers();
         Task<IEnumerable<Employee>> GetEmployeesNotManagers();
         Task<IEnumerable<DepartmentEmployeeCount>> GetDepartmentsWithMoreThanTenEmployees();
-
+        Task<List<object>> GetEmployeesWhoAreNeitherManagersNorSupervisors();
+        Task<IEnumerable<object>> GetEmployeesWhoShouldRetire();
+        Task<IEnumerable<object>> GetEmployeesInITDepartment();
+        Task<IEnumerable<object>> GetManagersDueToRetireThisYear();
+        Task<int> GetNumberOfFemaleManagers();
+        Task<IEnumerable<object>> GetEmployeeAgeInfo();
+        Task<IEnumerable<object>> GetTotalHoursWorkedByEmployee();
+        Task<IEnumerable<object>> GetManagersUnder40();
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using MiniProject4.Persistence.Models;
 using MiniProject4.Persistence.Services;
+using MiniProject5.Persistence;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -55,13 +56,7 @@ builder.Services.AddApiVersioning(option =>
     options.SubstituteApiVersionInUrl = true; //This will help us to resolve the ambiguity when there is a routing conflict due to routing template one or more end points are same.
 });
 
-//Register DB Context
-var connectionString = builder.Configuration.GetConnectionString("DbConnection");
-builder.Services.AddDbContext<Miniproject4Context>(options => options.UseNpgsql(connectionString));
-builder.Services.AddScoped<EmployeeService>();
-builder.Services.AddScoped<DepartmentService>();
-builder.Services.AddScoped<ProjectService>();
-builder.Services.AddScoped<WorksonService>();
+builder.Services.ConfigurePersistence(builder.Configuration);
 
 var app = builder.Build();
 

@@ -1,20 +1,18 @@
-﻿using MiniProject4.Application.Interfaces;
-using MiniProject4.Domain.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using MiniProject4.Application.Interfaces.IRepositories;
+using MiniProject4.Persistence.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MiniProject4.Application.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using MiniProject4.Persistence.Models;
 
-namespace MiniProject4.Persistence.Services
+namespace MiniProject4.Persistence.Repositories
 {
-    public class DepartmentService : IDepartment
+    public class DepartmentRepository:IDepartmentRepository
     {
         private readonly Miniproject4Context _context;
-        public DepartmentService(Miniproject4Context context)
+        public DepartmentRepository(Miniproject4Context context)
         {
             _context = context;
         }

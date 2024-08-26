@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MiniProject4.Application.Interfaces
+namespace MiniProject4.Application.Interfaces.IServices
 {
-    public interface IDepartment
+    public interface IDepartmentService
     {
         Task<bool> AddDepartment(Department department);
         Task<IEnumerable<Department>> GetAllDepartments(int pageNumber, int pageSize);

@@ -49,18 +49,35 @@ namespace MiniProject4.WebAPI.Controllers
         /// <returns>Success message if the project is added successfully or an error message if validation fails.</returns>
         [HttpPost]
         [MapToApiVersion("1.0")]
-        public async Task<ActionResult<Project>> AddProject([FromBody] Project project)
+        public async Task<ActionResult> AddProject([FromBody] Project project)
         {
             if (project == null)
             {
                 return BadRequest("Project data cannot be null.");
             }
+
             // Validate required fields
             if (string.IsNullOrWhiteSpace(project.Projname) || project.Deptno == 0)
             {
                 return BadRequest("Project Name and Department Number are required.");
             }
+
+            // Validate department exists
+            var departmentExists = await _departmentService.GetDepartmentById(project.Deptno);
+            if (departmentExists == null)
+            {
+                return BadRequest("Department Number does not exist.");
             }
+
+            // Add the project to the service for further processing
+            var (isSuccess, message) = await _projectService.AddProject(project);
+            if (!isSuccess)
+            {
+                return BadRequest(message);
+            }
+
+            return Ok("Project Data Successfully Added.");
+        }
 
         /// <summary>
         /// Retrieves a paginated list of all projects in the system.
@@ -70,7 +87,7 @@ namespace MiniProject4.WebAPI.Controllers
         ///
         /// Sample request:
         ///
-        ///     GET /Project/page/1/size/10
+        ///     GET /Project
         /// </remarks>
         /// <param name="pageNumber">The page number for pagination.</param>
         /// <param name="pageSize">The number of projects to retrieve per page.</param>
@@ -194,27 +211,9 @@ namespace MiniProject4.WebAPI.Controllers
         public async Task<ActionResult<IEnumerable<Project>>> GetProjectsManagedByDept()
         {
             var projects = await _projectService.GetProjectsManagedByDept();
-            return Ok(projects);
-        }
-
-        /// <summary>
-        /// Retrieves a list of projects managed by specific departments (e.g., Finance, Sales).
-        /// </summary>
-        /// <remarks>
-        /// Sample request:
-        ///
-        ///     GET /Project/managed-by-departments
-        /// </remarks>
-        /// <returns>A list of projects managed by the specified departments.</returns>
-        [HttpGet("managed-by-departments")]
-        [MapToApiVersion("1.0")]
-        public async Task<ActionResult<IEnumerable<Project>>> GetProjectsManagedByDepartments()
-        {
-            var departmentNames = new[] { "Finance", "Sales" };
-            var projects = await _projectService.GetProjectsManagedByDepartments(departmentNames);
-            if (projects == null || !projects.Any())
+            if (projects == null)
             {
-                return NotFound("No projects found managed by the specified departments.");
+                return NotFound("Project Managed by Department Planning Not Found.");
             }
             return Ok(projects);
         }
@@ -235,5 +234,48 @@ namespace MiniProject4.WebAPI.Controllers
             var projects = await _projectService.GetProjectsWithNoEmployees();
             return Ok(projects);
         }
+
+        /// <summary>
+        /// Retrieves a list of projects managed by the IT and HR departments.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Project/it-hr-projects
+        /// </remarks>
+        /// <returns>A list of projects managed by IT and HR departments.</returns>
+        [HttpGet("it-hr-projects")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> GetProjectsManagedByITAndHR()
+        {
+            var projects = await _projectService.GetProjectsManagedByITAndHR();
+            if (projects == null || !projects.Any())
+            {
+                return NotFound("No projects found for IT and HR departments.");
+            }
+            return Ok(projects);
+        }
+
+        /// <summary>
+        /// Retrieves a list of female managers and the projects they manage.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Project/female-managers-projects
+        /// </remarks>
+        /// <returns>A list of female managers and their projects.</returns>
+        [HttpGet("female-managers-projects")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> GetFemaleManagersAndTheirProjects()
+        {
+            var result = await _projectService.GetFemaleManagersAndTheirProjects();
+            if (result == null || !result.Any())
+            {
+                return NotFound("No female managers found or they do not manage any projects.");
+            }
+            return Ok(result);
+        }
     }
+
 }

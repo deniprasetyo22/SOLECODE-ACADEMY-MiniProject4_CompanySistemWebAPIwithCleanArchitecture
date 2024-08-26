@@ -40,7 +40,7 @@ public partial class Employee
     public string Position { get; set; } = null!;
 
     [Column("deptno")]
-    public int? Deptno { get; set; }
+    public int Deptno { get; set; }
 
     [InverseProperty("MgrempnoNavigation")]
     public virtual ICollection<Department> Departments { get; set; } = new List<Department>();

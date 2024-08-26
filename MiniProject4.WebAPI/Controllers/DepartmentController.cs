@@ -85,18 +85,26 @@ namespace MiniProject4.WebAPI.Controllers
         ///
         /// Sample request:
         ///
-        ///     GET /Department/page/1/size/10
+        ///     GET /Department
         /// </remarks>
-        /// <param name="pageNumber">The page number for pagination.</param>
-        /// <param name="pageSize">The number of departments to retrieve per page.</param>
+        /// <param name="pageNumber">The page number for pagination. Must be greater than zero.</param>
+        /// <param name="pageSize">The number of departments to retrieve per page. Must be greater than zero.</param>
         /// <returns>A paginated list of departments.</returns>
+        /// <response code="200">Returns a paginated list of departments.</response>
+        /// <response code="400">If the page number or page size is less than or equal to zero.</response>
         [HttpGet]
         [MapToApiVersion("1.0")]
         public async Task<ActionResult<IEnumerable<Department>>> GetAllDepartments([FromQuery] int pageNumber, [FromQuery] int pageSize)
         {
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return BadRequest("Page number and page size must be greater than zero.");
+            }
+
             var departments = await _departmentService.GetAllDepartments(pageNumber, pageSize);
             return Ok(departments);
         }
+
 
         /// <summary>
         /// Retrieves the details of a department by its number.
@@ -193,4 +201,5 @@ namespace MiniProject4.WebAPI.Controllers
             return Ok("Department Data Successfully Deleted.");
         }
     }
+
 }

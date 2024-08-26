@@ -17,16 +17,14 @@ namespace MiniProject4.WebAPI.Controllers
     public class WorksonController : ControllerBase
     {
         private readonly WorksonService _worksonService;
-        private readonly IConfiguration _configuration;
 
         /// <summary>
         /// Initializes the WorksonController with the workson service.
         /// </summary>
         /// <param name="worksonService">The service used to manage work assignments.</param>
-        public WorksonController(WorksonService worksonService, IConfiguration configuration)
+        public WorksonController(WorksonService worksonService)
         {
             _worksonService = worksonService;
-            _configuration = configuration;
         }
 
         /// <summary>
@@ -55,11 +53,8 @@ namespace MiniProject4.WebAPI.Controllers
             {
                 return BadRequest("Workson data cannot be null.");
             }
-            var maxHoursWorked = _configuration.GetValue<int>("WorksonSettings:MaxHoursWorked");
-            var maxProject = _configuration.GetValue<int>("WorksonSettings:MaxProject");
             worksOn.ConvertDateWorkedObjectToDateOnly();
-
-            var (success, message) = await _worksonService.AddWorkson(worksOn, maxHoursWorked, maxProject);
+            var (success, message) = await _worksonService.AddWorkson(worksOn);
             if (!success)
             {
                 return BadRequest(message);
@@ -68,20 +63,19 @@ namespace MiniProject4.WebAPI.Controllers
             return Ok(message);
         }
 
-
         /// <summary>
-        /// Retrieves a paginated list of all workson in the system.
+        /// Retrieves a paginated list of all work assignments in the system.
         /// </summary>
         /// <remarks>
         /// Provide the page number and page size for pagination.
         ///
         /// Sample request:
         ///
-        ///     GET /Workson?pageNumber=1&pageSize=10
+        ///     GET /Workson
         /// </remarks>
         /// <param name="pageNumber">The page number for pagination.</param>
-        /// <param name="pageSize">The number of workson to retrieve per page.</param>
-        /// <returns>A paginated list of workson.</returns>
+        /// <param name="pageSize">The number of work assignments to retrieve per page.</param>
+        /// <returns>A paginated list of work assignments.</returns>
         [HttpGet]
         [MapToApiVersion("1.0")]
         public async Task<ActionResult<IEnumerable<Workson>>> GetAllWorkson([FromQuery] int pageNumber, [FromQuery] int pageSize)
@@ -103,14 +97,14 @@ namespace MiniProject4.WebAPI.Controllers
         ///
         /// Sample request:
         ///
-        ///     GET /Workson/1/101
+        ///     GET /Workson/1/1
         /// </remarks>
         /// <param name="empNo">The employee number of the work assignment to be retrieved.</param>
         /// <param name="projNo">The project number of the work assignment to be retrieved.</param>
         /// <returns>Work assignment details if found or an error message if not found.</returns>
         [HttpGet("{empNo}/{projNo}")]
         [MapToApiVersion("1.0")]
-        public async Task<ActionResult<Workson>> GetWorksonById( int empNo, int projNo)
+        public async Task<ActionResult<Workson>> GetWorksonById(int empNo, int projNo)
         {
             var worksOn = await _worksonService.GetWorksonById(empNo, projNo);
             if (worksOn == null)
@@ -128,7 +122,7 @@ namespace MiniProject4.WebAPI.Controllers
         ///
         /// Sample request:
         ///
-        ///     PUT /Workson/1/101
+        ///     PUT /Workson/1/1
         ///     {
         ///        "dateworked": "2024-08-10",
         ///        "hoursworked": 9
@@ -164,7 +158,7 @@ namespace MiniProject4.WebAPI.Controllers
         ///
         /// Sample request:
         ///
-        ///     DELETE /Workson/1/101
+        ///     DELETE /Workson/1/1
         /// </remarks>
         /// <param name="empNo">The employee number of the work assignment to be deleted.</param>
         /// <param name="projNo">The project number of the work assignment to be deleted.</param>
@@ -180,5 +174,51 @@ namespace MiniProject4.WebAPI.Controllers
             }
             return Ok("Workson deleted successfully.");
         }
+
+        /// <summary>
+        /// Retrieves the maximum and minimum hours worked across all assignments.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Workson/max-min-hours
+        /// </remarks>
+        /// <returns>JSON object with maximum and minimum hours worked.</returns>
+        [HttpGet("max-min-hours")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> GetMaxAndMinHoursWorked()
+        {
+            var (maxHours, minHours) = await _worksonService.GetMaxAndMinHoursWorked();
+
+            return Ok(new
+            {
+                MaxHours = maxHours,
+                MinHours = minHours
+            });
+        }
+
+        /// <summary>
+        /// Retrieves the total hours worked by each employee.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Workson/total-hours-by-employee
+        /// </remarks>
+        /// <returns>A list of total hours worked by each employee.</returns>
+        [HttpGet("total-hours-by-employee")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> GetTotalHoursWorkedByEmployee()
+        {
+            var totalHours = await _worksonService.GetTotalHoursWorkedByEmployee();
+
+            if (totalHours == null || !totalHours.Any())
+            {
+                return NotFound("No work records found.");
+            }
+
+            return Ok(totalHours);
+        }
     }
+
 }

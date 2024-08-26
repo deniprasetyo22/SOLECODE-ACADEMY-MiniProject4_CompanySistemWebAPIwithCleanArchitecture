@@ -17,16 +17,14 @@ namespace MiniProject4.WebAPI.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly EmployeeService _employeeService;
-        private readonly IConfiguration _configuration;
 
         /// <summary>
         /// Initializes the EmployeeController with the employee service.
         /// </summary>
         /// <param name="employeeService">The service used to manage employees.</param>
-        public EmployeeController(EmployeeService employeeService, IConfiguration configuration)
+        public EmployeeController(EmployeeService employeeService)
         {
             _employeeService = employeeService;
-            _configuration = configuration;
         }
 
         /// <summary>
@@ -48,7 +46,6 @@ namespace MiniProject4.WebAPI.Controllers
         /// <param name="employee">The employee to be added.</param>
         /// <returns>Success message if the employee is added successfully or an error message if validation fails.</returns>
         [HttpPost]
-        [HttpPost]
         [MapToApiVersion("1.0")]
         public async Task<ActionResult> AddEmployee([FromBody] Employee employee)
         {
@@ -56,17 +53,15 @@ namespace MiniProject4.WebAPI.Controllers
             {
                 return BadRequest("Employee data is null.");
             }
-            var maxEmployees = _configuration.GetValue<int>("EmployeeSettings:MaxEmployees");
-            var (isSuccess, message) = await _employeeService.AddEmployee(employee, maxEmployees);
+            var (isSuccess, message) = await _employeeService.AddEmployee(employee);
 
             if (!isSuccess)
             {
-                return BadRequest(message); // Mengembalikan pesan yang diberikan oleh service
+                return BadRequest(message);
             }
 
             return Ok("Employee data successfully added.");
         }
-
 
         /// <summary>
         /// Retrieves a paginated list of all employees in the system.
@@ -76,7 +71,7 @@ namespace MiniProject4.WebAPI.Controllers
         ///
         /// Sample request:
         ///
-        ///     GET /Employee/page/1/size/10
+        ///     GET /Employee
         /// </remarks>
         /// <param name="pageNumber">The page number for pagination.</param>
         /// <param name="pageSize">The number of employees to retrieve per page.</param>
@@ -93,7 +88,6 @@ namespace MiniProject4.WebAPI.Controllers
             var employees = await _employeeService.GetAllEmployees(pageNumber, pageSize);
             return Ok(employees);
         }
-
 
         /// <summary>
         /// Retrieves the details of an employee by their number.
@@ -267,27 +261,10 @@ namespace MiniProject4.WebAPI.Controllers
         /// <returns>A list of employees who are not managers.</returns>
         [HttpGet("not-managers")]
         [MapToApiVersion("1.0")]
-        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesManagers()
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesNotManagers()
         {
             var employees = await _employeeService.GetEmployeesNotManagers();
             return Ok(employees);
-        }
-
-        /// <summary>
-        /// Retrieves the number of female managers.
-        /// </summary>
-        /// <remarks>
-        /// Sample request:
-        ///
-        ///     GET /Employee/female-managers-count
-        /// </remarks>
-        /// <returns>The number of female managers.</returns>
-        [HttpGet("female-managers-count")]
-        [MapToApiVersion("1.0")]
-        public async Task<ActionResult<int>> GetNumberOfFemaleManagers()
-        {
-            var count = await _employeeService.GetNumberOfFemaleManagers();
-            return Ok(count);
         }
 
         /// <summary>
@@ -307,5 +284,171 @@ namespace MiniProject4.WebAPI.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Retrieves a list of employees who are neither managers nor supervisors.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Employee/non-managers-or-supervisors
+        /// </remarks>
+        /// <returns>A list of employees who are neither managers nor supervisors.</returns>
+        [HttpGet("non-managers-or-supervisors")]
+        [MapToApiVersion("1.0")]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesWhoAreNeitherManagersNorSupervisors()
+        {
+            var employees = await _employeeService.GetEmployeesWhoAreNeitherManagersNorSupervisors();
+            if (employees == null || !employees.Any())
+            {
+                return NotFound("No employees found who are neither managers nor supervisors.");
+            }
+
+            return Ok(employees);
+        }
+
+        /// <summary>
+        /// Retrieves a list of employees who are due for retirement.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Employee/retiring
+        /// </remarks>
+        /// <returns>A list of employees who are due for retirement.</returns>
+        [HttpGet("retiring")]
+        [MapToApiVersion("1.0")]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesWhoShouldRetire()
+        {
+            var employees = await _employeeService.GetEmployeesWhoShouldRetire();
+            if (employees == null || !employees.Any())
+            {
+                return NotFound("No employees found who are due for retirement.");
+            }
+
+            return Ok(employees);
+        }
+
+        /// <summary>
+        /// Retrieves a list of employees in the IT department.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Employee/employees-it-dept
+        /// </remarks>
+        /// <returns>A list of employees in the IT department.</returns>
+        [HttpGet("employees-it-dept")]
+        [MapToApiVersion("1.0")]
+        public async Task<ActionResult<IEnumerable<Employee>>> GetEmployeesInITDepartment()
+        {
+            var employees = await _employeeService.GetEmployeesInITDepartment();
+            if (employees == null || !employees.Any())
+            {
+                return NotFound("No employees found in the IT department.");
+            }
+
+            return Ok(employees);
+        }
+
+        /// <summary>
+        /// Retrieves a list of managers who are due to retire this year.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Employee/managers-retiring-this-year
+        /// </remarks>
+        /// <returns>A list of managers due to retire this year.</returns>
+        [HttpGet("managers-retiring-this-year")]
+        [MapToApiVersion("1.0")]
+        public async Task<ActionResult<IEnumerable<object>>> GetManagersDueToRetireThisYear()
+        {
+            var managers = await _employeeService.GetManagersDueToRetireThisYear();
+            if (managers == null || !managers.Any())
+            {
+                return NotFound("No managers are due to retire this year.");
+            }
+
+            return Ok(managers);
+        }
+
+        /// <summary>
+        /// Retrieves the count of female managers.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Employee/female-managers-count
+        /// </remarks>
+        /// <returns>The count of female managers.</returns>
+        [HttpGet("female-managers-count")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> GetFemaleManagersCount()
+        {
+            var result = await _employeeService.GetNumberOfFemaleManagers();
+            if (result == null)
+            {
+                return BadRequest("Failed to retrieve the data.");
+            }
+
+            return Ok($"FemaleManagersCount = {result}");
+        }
+
+        /// <summary>
+        /// Retrieves information about employees' ages.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Employee/age-info
+        /// </remarks>
+        /// <returns>Information about employees' ages.</returns>
+        [HttpGet("age-info")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> GetEmployeeAgeInfo()
+        {
+            var result = await _employeeService.GetEmployeeAgeInfo();
+            if (result == null || !result.Any())
+            {
+                return NotFound("No employee age information found.");
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves the total hours worked by each employee.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Employee/total-hours-worked
+        /// </remarks>
+        /// <returns>Total hours worked by each employee.</returns>
+        [HttpGet("total-hours-worked")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> GetTotalHoursWorkedByEmployee()
+        {
+            var result = await _employeeService.GetTotalHoursWorkedByEmployee();
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves a list of managers under 40 years old.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /Employee/managers-under-40
+        /// </remarks>
+        /// <returns>A list of managers under 40 years old.</returns>
+        [HttpGet("managers-under-40")]
+        [MapToApiVersion("1.0")]
+        public async Task<IActionResult> GetManagersUnder40()
+        {
+            var result = await _employeeService.GetManagersUnder40();
+            return Ok(result);
+        }
     }
+
 }

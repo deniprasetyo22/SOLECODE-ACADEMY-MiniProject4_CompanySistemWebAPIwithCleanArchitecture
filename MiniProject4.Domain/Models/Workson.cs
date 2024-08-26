@@ -18,7 +18,7 @@ public partial class Workson
 
     [Key]
     [Column("projno")]
-    public int? Projno { get; set; }
+    public int Projno { get; set; }
 
     [Column("dateworked")]
     public DateOnly? Dateworked { get; set; }

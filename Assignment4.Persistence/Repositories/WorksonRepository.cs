@@ -1,27 +1,30 @@
-﻿using MiniProject4.Application.Interfaces;
-using MiniProject4.Domain.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using MiniProject4.Application.Interfaces.IRepositories;
+using MiniProject4.Persistence.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using MiniProject4.Persistence.Models;
-using Microsoft.Extensions.Configuration;
 
-namespace MiniProject4.Persistence.Services
+namespace MiniProject4.Persistence.Repositories
 {
-    public class WorksonService : IWorksOn
+    public class WorksonRepository:IWorksonRepository
     {
         private readonly Miniproject4Context _context;
+        private readonly IConfiguration _configuration;
 
-        public WorksonService(Miniproject4Context context)
+        public WorksonRepository(Miniproject4Context context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
-        public async Task<(bool Success, string Message)> AddWorkson(Workson worksOn, int maxHoursWorked, int maxProject)
+        public async Task<(bool Success, string Message)> AddWorkson(Workson worksOn)
         {
+            var maxHoursWorked = int.Parse(_configuration["WorksonSettings:MaxHoursWorked"]);
+            var maxProject = int.Parse(_configuration["WorksonSettings:MaxProject"]);
             if (worksOn == null)
             {
                 return (false, "Workson data cannot be null.");
@@ -113,6 +116,40 @@ namespace MiniProject4.Persistence.Services
             _context.Worksons.Remove(existingWorkson);
             await _context.SaveChangesAsync();
             return true;
+        }
+        public async Task<(int maxHours, int minHours)> GetMaxAndMinHoursWorked()
+        {
+            // Mengecek apakah ada data di tabel Worksons
+            if (!await _context.Worksons.AnyAsync())
+            {
+                // Jika tidak ada data, kembalikan nilai 0 untuk maxHours dan minHours
+                return (0, 0);
+            }
+
+            // Mengambil nilai maksimum dan minimum jam kerja
+            var maxHours = await _context.Worksons
+                .Where(w => w.Hoursworked.HasValue)
+                .MaxAsync(w => w.Hoursworked.Value);
+
+            var minHours = await _context.Worksons
+                .Where(w => w.Hoursworked.HasValue)
+                .MinAsync(w => w.Hoursworked.Value);
+
+            return (maxHours, minHours);
+        }
+        public async Task<Dictionary<string, int>> GetTotalHoursWorkedByEmployee()
+        {
+            var totalHours = await (from w in _context.Worksons
+                                    join e in _context.Employees on w.Empno equals e.Empno
+                                    group w by new { e.Fname, e.Lname } into g
+                                    select new
+                                    {
+                                        EmployeeName = $"{g.Key.Fname} {g.Key.Lname}",
+                                        TotalHours = g.Sum(w => w.Hoursworked ?? 0) //operator null-coalescing, w.Hoursworked ?? 0 berarti: jika w.Hoursworked memiliki nilai (tidak null), maka ambil nilainya. Jika w.Hoursworked adalah null, maka gunakan nilai default 0
+                                    })
+                                    .ToDictionaryAsync(x => x.EmployeeName, x => x.TotalHours);
+
+            return totalHours;
         }
     }
 }
