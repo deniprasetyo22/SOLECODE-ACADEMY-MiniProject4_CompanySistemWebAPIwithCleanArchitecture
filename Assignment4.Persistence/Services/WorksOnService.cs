@@ -27,7 +27,6 @@ namespace MiniProject4.Persistence.Services
                 return (false, "Workson data cannot be null.");
             }
 
-
             // Validasi apakah Workson sudah ada
             var existingWorkson = await _context.Worksons
                 .FirstOrDefaultAsync(w => w.Empno == worksOn.Empno && w.Projno == worksOn.Projno);
