@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MiniProject4.Application.Interfaces.IServices;
 using MiniProject4.Domain.Models;
 using MiniProject4.Persistence.Models;
 using MiniProject4.Persistence.Services;
@@ -16,13 +17,13 @@ namespace MiniProject4.WebAPI.Controllers
     /// </summary>
     public class EmployeeController : ControllerBase
     {
-        private readonly EmployeeService _employeeService;
+        private readonly IEmployeeService _employeeService;
 
         /// <summary>
         /// Initializes the EmployeeController with the employee service.
         /// </summary>
         /// <param name="employeeService">The service used to manage employees.</param>
-        public EmployeeController(EmployeeService employeeService)
+        public EmployeeController(IEmployeeService employeeService)
         {
             _employeeService = employeeService;
         }
